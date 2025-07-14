@@ -5,7 +5,7 @@ from datetime import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# 📦 식품 영양 DB (간이 버전)
+# 식품 영양 DB (간이 버전)
 food_nutrition_db = {
     "밥": {"칼로리": 300, "탄수화물": 65, "단백질": 6, "지방": 1},
     "김치": {"칼로리": 50, "탄수화물": 5, "단백질": 2, "지방": 1},
@@ -16,7 +16,7 @@ food_nutrition_db = {
     "요구르트": {"칼로리": 80, "탄수화물": 12, "단백질": 3, "지방": 2},
 }
 
-# 🏫 식단 크롤링 함수 (요일 포함 키 탐색)
+# 식단 크롤링 함수 (키 자동 추론)
 def get_menu_by_date(date_str):
     url = "https://school.gyo6.net/pocheolhs/ad/fm/foodmenu/selectFoodMenuView.do?mi=165626"
     try:
@@ -33,16 +33,24 @@ def get_menu_by_date(date_str):
             menu_text = cols[1].text.strip()
             menus[day_text] = menu_text
 
-        # 다양한 키 포맷에 대응
+        # 실제 등록된 키 디버깅 출력 (Streamlit 화면에 표시)
+        st.write("📌 등록된 날짜 키 목록:")
+        for key in menus.keys():
+            st.write(f" - {key}")
+
+        # 날짜 포맷 생성
         day = datetime.strptime(date_str, "%Y-%m-%d").day
         weekday_kor = ["월", "화", "수", "목", "금", "토", "일"]
         weekday = weekday_kor[datetime.strptime(date_str, "%Y-%m-%d").weekday()]
         keys_to_try = [
+            f"{day}",
             f"{day}일",
             f"{day}({weekday})",
-            f"{day}일({weekday})"
+            f"{day}일({weekday})",
+            f"{day}일{weekday}"
         ]
 
+        # 키 매칭 시도
         for key in keys_to_try:
             if key in menus:
                 return menus[key]
@@ -51,7 +59,7 @@ def get_menu_by_date(date_str):
     except Exception as e:
         return f"오류 발생: {str(e)}"
 
-# 🧮 영양 분석 함수
+# 영양 분석 함수
 def analyze_menu(menu_text):
     items = menu_text.replace('\n', ',').replace(' ', '').split(',')
     total = {"칼로리": 0, "탄수화물": 0, "단백질": 0, "지방": 0}
@@ -68,7 +76,7 @@ def analyze_menu(menu_text):
 
     return total, pd.DataFrame(detail)
 
-# 📊 권장 섭취량 비교
+# 권장 섭취량 비교
 def show_comparison(total):
     rec = {"칼로리": 900, "탄수화물": 130, "단백질": 20, "지방": 30}
     ratio = {k: total[k]/rec[k]*100 if rec[k] else 0 for k in total}
@@ -83,7 +91,7 @@ def show_comparison(total):
     ax.set_ylabel("섭취 비율 (%)")
     st.pyplot(fig)
 
-# 🚀 Streamlit 웹 앱 실행
+# Streamlit 앱
 st.set_page_config(page_title="포철고 급식 영양소 분석기", layout="centered")
 st.title("🍱 포철고 급식 영양소 분석기")
 
