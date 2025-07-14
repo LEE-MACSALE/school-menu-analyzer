@@ -1,3 +1,4 @@
+pip install streamlit beautifulsoup4 pandas requests matplotlib
 import streamlit as st
 import requests
 from bs4 import BeautifulSoup
